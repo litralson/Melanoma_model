@@ -95,7 +95,7 @@ popCurr_C = initializeSpace(popCurr_C, 0)
 
 
 
-par(2,1)
+par(mfrow=c(2,1))
 
 popPlot_Total = popCurr_N[2:n+1,2:n+1]+popCurr_C[2:n+1,2:n+1]
 image.plot(popPlot_Total,zlim=c(0,(k_N+k_C)))
@@ -123,9 +123,9 @@ for (t in 2:tmax)
   
   for (i in 2:(n+1) ) {
     for (j in 2:(n+1) ) {
-      popCurr_N[i,j] = (popPast_N[i,j] + dt*f(popPast_N[i,j],popPast_C[i,j],k_N,k_C,r1,alpha_NC) 
+      popCurr_N[i,j] = (popPast_N[i,j] + dt*f(popPast_N[i,j],popPast_C[i,j],k_N,k_C,r_N,alpha_NC) 
                         + dt*dCoeff_N*diffTerm(popPast_N)/(dx*dx) - dr*(popPast_N[i,j])); 
-      popCurr_C[i,j] = (popPast_C[i,j] + dt*f(popPast_C[i,j],popPast_N[i,j],k_C,k_N,r2,alpha_CN) 
+      popCurr_C[i,j] = (popPast_C[i,j] + dt*f(popPast_C[i,j],popPast_N[i,j],k_C,k_N,r_C,alpha_CN) 
                         + dt*dCoeff_C(popPast_N[i,j],k_N,dCoeff_C_max)*diffTerm(popPast_C)/(dx*dx)); 
     }
   }
@@ -144,5 +144,5 @@ for (t in 2:tmax)
   #Sleep, so that animation is visible.
   Sys.sleep(0.1);
 }
-
+# hi
 # image.plot(popPlot_Total,zlim=c(0,(k_N+k_C)))
