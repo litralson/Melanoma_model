@@ -1,9 +1,10 @@
 library('fields')
+library(gsubfn)
 
-# Growth function
-f <- function(x,k,r)
+# Lotka-Volterra Growth function
+f <- function(x_1,x_2,k_1,k_2,r,alpha)
 {
-  return(r*x*(1-x/k) )
+  return(r*x_1*(1-(x_1/k_1)-(alpha*x_2/k_2)) )
 }
 
  
@@ -46,77 +47,102 @@ diffTerm <- function(xarray)
   return(diffx+diffy) 
 }
 
+# Make diffusion coefficient of cancerous cells depend on normal cells
+dCoeff_C <- function(x,k,d_max)
+{
+  return(d_max*(1-(x/k)))
+}
+
 # Carcinogenic event
-carc_event <- function(xarray)
+carc_event <- function(xarray_C,xarray_N)
 {
   u = sample.int(10,1)
   print(u)
   rn_cells_row = sample.int(50,u)
   rn_cells_col = sample.int(50,u)
+  mu = 0.2
   for (i in 1:u) {
-      xarray[rn_cells_row[i],rn_cells_col[i]] = 4
+      xarray_C[rn_cells_row[i],rn_cells_col[i]] = mu*xarray_N[rn_cells_row[i],rn_cells_col[i]]
+      xarray_N[rn_cells_row[i],rn_cells_col[i]] = xarray_N[rn_cells_row[i],rn_cells_col[i]] - xarray_C[rn_cells_row[i],rn_cells_col[i]]
     }
-  return(xarray)
+  return(list(xarray_C,xarray_N))
   }
 
 n = 50
 # For normal cells
-r1 = 1
-k1 =10
-dCoeff_1 = 1
+r_N = 1
+k_N =10
+dCoeff_N = 0
+alpha_NC = 1
+dr = 0.1
 
 # For cancerous cells 
-r2 = 1.5 # Look up the values for logistic function
-k2 = 15 
-dCoeff_2 = 1.5 # make it dependent on neighbouring cells
-
+r_C = 1.5 # Look up the values for logistic function
+k_C = 15 
+dCoeff_C_max = 1.5 # make it dependent on neighbouring cells
+alpha_CN = 1
 #Integration related
 tmax=200
 dt=0.1 #Note that dt < dx^2/2D for the integration scheme to converge! 
 dx=1
 
 
-popCurr_1 = matrix(nrow=n+2,ncol=n+2)
-popCurr_1 = initializeSpace(popCurr_1, k1)
+popCurr_N = matrix(nrow=n+2,ncol=n+2)
+popCurr_N = initializeSpace(popCurr_N, k_N)
 
-popCurr_2 = matrix(nrow=n+2,ncol=n+2)
-popCurr_2 = initializeSpace(popCurr_2, 0)  
+popCurr_C = matrix(nrow=n+2,ncol=n+2)
+popCurr_C = initializeSpace(popCurr_C, 0)  
 
-popPlot=popCurr_1[2:n+1,2:n+1]+popCurr_2[2:n+1,2:n+1]
 
-image.plot(popPlot,zlim=c(0,(k1+k2)))
+
+par(2,1)
+
+popPlot_Total = popCurr_N[2:n+1,2:n+1]+popCurr_C[2:n+1,2:n+1]
+image.plot(popPlot_Total,zlim=c(0,(k_N+k_C)))
+
+popPlot_Can = popCurr_C[2:n+1,2:n+1]
+image.plot(popPlot_Can,zlim=c(0,(k_C)))
+
 
 Sys.sleep(1)
 
-popCurr_2 = carc_event(popCurr_2)
-popPlot=popCurr_1[2:n+1,2:n+1]+popCurr_2[2:n+1,2:n+1]
-image.plot(popPlot,zlim=c(0,(k1+k2)))
+# Carcinogenic Event
+list[popCurr_C, popCurr_N] = carc_event(popCurr_C,popCurr_N )
+
+popPlot_Total=popCurr_N[2:n+1,2:n+1]+popCurr_C[2:n+1,2:n+1]
+image.plot(popPlot_Total,zlim=c(0,(k_N+k_C)))
+
+popPlot_Can = popCurr_C[2:n+1,2:n+1]
+image.plot(popPlot_Can,zlim=c(0,(k_C)))
 
 for (t in 2:tmax)
 {
   #Numerical integration  
-  popPast_1 = popCurr_1
-  popPast_2 = popCurr_2
+  popPast_N = popCurr_N
+  popPast_C = popCurr_C
   
   for (i in 2:(n+1) ) {
     for (j in 2:(n+1) ) {
-      popCurr_1[i,j] = (popPast_1[i,j] + dt*f(popPast_1[i,j],k1,r1) 
-                        + dt*dCoeff_1*diffTerm(popPast_1)/(dx*dx)); 
-      popCurr_2[i,j] = (popPast_2[i,j] + dt*f(popPast_2[i,j],k2,r2) 
-                        + dt*dCoeff_2*diffTerm(popPast_2)/(dx*dx)); 
+      popCurr_N[i,j] = (popPast_N[i,j] + dt*f(popPast_N[i,j],popPast_C[i,j],k_N,k_C,r1,alpha_NC) 
+                        + dt*dCoeff_N*diffTerm(popPast_N)/(dx*dx) - dr*(popPast_N[i,j])); 
+      popCurr_C[i,j] = (popPast_C[i,j] + dt*f(popPast_C[i,j],popPast_N[i,j],k_C,k_N,r2,alpha_CN) 
+                        + dt*dCoeff_C(popPast_N[i,j],k_N,dCoeff_C_max)*diffTerm(popPast_C)/(dx*dx)); 
     }
   }
   
  
   #Make the array consistent with periodic boundary conditions.
-  popCurr_1 = makePeriodic(popCurr_1)
-  popCurr_2 = makePeriodic(popCurr_2)
-  popPlot = popCurr_1[2:n+1,2:n+1] + popCurr_2[2:n+1,2:n+1];
+  popCurr_N = makePeriodic(popCurr_N)
+  popCurr_C = makePeriodic(popCurr_C)
   
-  image.plot(popPlot,zlim=c(0,(k1+k2)))
+  popPlot_Total = popCurr_N[2:n+1,2:n+1] + popCurr_C[2:n+1,2:n+1];
+  image.plot(popPlot_Total,zlim=c(0,(k_N+k_C)))
+  
+  popPlot_Can = popCurr_C[2:n+1,2:n+1]
+  image.plot(popPlot_Can,zlim=c(0,(k_C)))
   
   #Sleep, so that animation is visible.
   Sys.sleep(0.1);
 }
 
-# image.plot(popPlot,zlim=c(0,(k1+k2)))
+# image.plot(popPlot_Total,zlim=c(0,(k_N+k_C)))
