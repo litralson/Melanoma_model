@@ -1,6 +1,6 @@
 ---
 title: "Melanoma Model"
-author: "Litralson & Sambita"
+authors: "Litralson & Sambita"
 date: "25 October 2021"
 output: html_document
 ---
