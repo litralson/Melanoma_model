@@ -58,16 +58,18 @@ dCoeff_C <- function(x,k,d_max)
 # Carcinogenic event
 carc_event <- function(xarray_C,xarray_N)
 {
-  u = sample.int(10,1)
-  print(u)
-  rn_cells_row = sample.int(50,u)
-  rn_cells_col = sample.int(50,u)
-  mu = 0.2
-  for (i in 1:u) {
-      xarray_C[rn_cells_row[i],rn_cells_col[i]] = mu*xarray_N[rn_cells_row[i],rn_cells_col[i]]
-      xarray_N[rn_cells_row[i],rn_cells_col[i]] = xarray_N[rn_cells_row[i],rn_cells_col[i]] - xarray_C[rn_cells_row[i],rn_cells_col[i]]
+    u = sample.int(10,1)
+    print(u)
+    rn_cells_row = sample.int(50,u)
+    rn_cells_col = sample.int(50,u)
+    mu = 0.01
+    for (i in 1:u) {
+      xarray_C[rn_cells_row[i],rn_cells_col[i]] = (xarray_C[rn_cells_row[i],rn_cells_col[i]] 
+                                                   + mu*xarray_N[rn_cells_row[i],rn_cells_col[i]])
+      xarray_N[rn_cells_row[i],rn_cells_col[i]] = (xarray_N[rn_cells_row[i],rn_cells_col[i]] 
+                                                   - xarray_C[rn_cells_row[i],rn_cells_col[i]])
     }
-  return(list(xarray_C,xarray_N))
+    return(list(xarray_C,xarray_N))
   }
 
 n = 50
@@ -87,7 +89,7 @@ alpha_CN = 1
 tmax=200
 dt=0.1 #Note that dt < dx^2/2D for the integration scheme to converge! 
 dx=1
-
+intvl = 10
 
 popCurr_N = matrix(nrow=n+2,ncol=n+2)
 popCurr_N = initializeSpace(popCurr_N, k_N)
@@ -97,7 +99,7 @@ popCurr_C = initializeSpace(popCurr_C, 0)
 
 
 
-par(mfrow=c(2,1))
+#par(mfrow=c(2,1))
 
 popPlot_Total = popCurr_N[2:n+1,2:n+1]+popCurr_C[2:n+1,2:n+1]
 image.plot(popPlot_Total,zlim=c(0,(k_N+k_C)))
@@ -118,8 +120,11 @@ popPlot_Can = popCurr_C[2:n+1,2:n+1]
 image.plot(popPlot_Can,zlim=c(0,(k_C)))
 
 for (t in 2:tmax)
-{
+{# try to integrate carcinogenic event  
   #Numerical integration  
+  if(t%%intvl == 0 & tmax-t >intvl){
+    list[popCurr_C, popCurr_N] = carc_event(popCurr_C,popCurr_N ) 
+  }
   popPast_N = popCurr_N
   popPast_C = popCurr_C
   
@@ -146,5 +151,5 @@ for (t in 2:tmax)
   #Sleep, so that animation is visible.
   Sys.sleep(0.1);
 }
-# hi
+
 # image.plot(popPlot_Total,zlim=c(0,(k_N+k_C)))
