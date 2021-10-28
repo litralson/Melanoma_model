@@ -74,15 +74,15 @@ carc_event <- function(xarray_C,xarray_N)
 
 n = 50
 # For normal cells
-r_N = 1
+r_N = 0.5
 k_N =10
 dCoeff_N = 0
 alpha_NC = 1
 dr = 0.1
 
 # For cancerous cells 
-r_C = 1.5 # Look up the values for logistic function
-k_C = 15 
+r_C = 0.6 # Look up the values for logistic function
+k_C = 15
 dCoeff_C_max = 1.5 # make it dependent on neighbouring cells
 alpha_CN = 1
 #Integration related
