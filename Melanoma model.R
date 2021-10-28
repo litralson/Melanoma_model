@@ -1,7 +1,6 @@
 library('fields')
 library(gsubfn)
 
-# testing git commit
 
 # Lotka-Volterra Growth function
 f <- function(x_1,x_2,k_1,k_2,r,alpha)
