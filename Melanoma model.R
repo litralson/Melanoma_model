@@ -118,6 +118,10 @@ image.plot(popPlot_Total,zlim=c(0,(k_N+k_C)))
 popPlot_Can = popCurr_C[2:n+1,2:n+1]
 image.plot(popPlot_Can,zlim=c(0,(k_C)))
 
+popSize_C = numeric(tmax)
+popSize_N = numeric(tmax)
+
+iter = 1:tmax
 for (t in 2:tmax)
 {# try to integrate carcinogenic event  
   #Numerical integration  
@@ -131,12 +135,17 @@ for (t in 2:tmax)
     for (j in 2:(n+1) ) {
       popCurr_N[i,j] = (popPast_N[i,j] + dt*f(popPast_N[i,j],popPast_C[i,j],k_N,k_C,r_N,alpha_NC) 
                         + dt*dCoeff_N*diffTerm(popPast_N)/(dx*dx) - dr*(popPast_N[i,j])); 
+      
       popCurr_C[i,j] = (popPast_C[i,j] + dt*f(popPast_C[i,j],popPast_N[i,j],k_C,k_N,r_C,alpha_CN) 
                         + dt*dCoeff_C(popPast_N[i,j],k_N,dCoeff_C_max)*diffTerm(popPast_C)/(dx*dx)); 
-    }
+      
+      }
   }
   
- 
+  #Total population size of the cell types after each iteration:
+  popSize_C[t] = sum(popCurr_C, na.rm = TRUE)
+  popSize_N[t] = sum(popCurr_N, na.rm = TRUE)
+  
   #Make the array consistent with periodic boundary conditions.
   popCurr_N = makePeriodic(popCurr_N)
   popCurr_C = makePeriodic(popCurr_C)
@@ -147,8 +156,16 @@ for (t in 2:tmax)
   popPlot_Can = popCurr_C[2:n+1,2:n+1]
   image.plot(popPlot_Can,zlim=c(0,(k_C)))
   
+  plot(popSize_N[2:t]~ iter[2:t], type='o', col='black',lwd=1, pch=18, ylab = 
+         "Population Size", xlab = "Iteration")
+  points(popSize_C[2:t]~ iter[2:t], type='o', col='red',lwd=1, pch=18)
+  
   #Sleep, so that animation is visible.
   Sys.sleep(0.1);
 }
+
+
+
+
 
 # image.plot(popPlot_Total,zlim=c(0,(k_N+k_C)))
