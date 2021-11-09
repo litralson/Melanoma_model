@@ -85,10 +85,11 @@ k_C = 15
 dCoeff_C_max = 1.5 # make it dependent on neighbouring cells
 alpha_CN = 1
 #Integration related
-tmax=200
+tmax=1000
 dt=0.1 #Note that dt < dx^2/2D for the integration scheme to converge! 
 dx=1
 intvl = 10
+dur = 3
 
 popCurr_N = matrix(nrow=n+2,ncol=n+2)
 popCurr_N = initializeSpace(popCurr_N, k_N)
@@ -125,11 +126,16 @@ iter = 1:tmax
 for (t in 2:tmax)
 {# try to integrate carcinogenic event  
   #Numerical integration  
-  if(t%%intvl == 0 & tmax-t >intvl){
+
+
+    
+  if(t%%intvl <= (dur-1) & tmax-t >intvl){
     list[popCurr_C, popCurr_N] = carc_event(popCurr_C,popCurr_N ) 
-  }
+    print(paste("timepoint =", t))}
   popPast_N = popCurr_N
   popPast_C = popCurr_C
+  
+  
   
   for (i in 2:(n+1) ) {
     for (j in 2:(n+1) ) {
@@ -156,14 +162,14 @@ for (t in 2:tmax)
   popPlot_Can = popCurr_C[2:n+1,2:n+1]
   image.plot(popPlot_Can,zlim=c(0,(k_C)))
   
-  plot(popSize_N[2:t]~ iter[2:t], type='o', col='black',lwd=1, pch=18, ylab = 
-         "Population Size", xlab = "Iteration")
-  points(popSize_C[2:t]~ iter[2:t], type='o', col='red',lwd=1, pch=18)
   
   #Sleep, so that animation is visible.
   Sys.sleep(0.1);
 }
 
+plot(popSize_N ~ iter, type='o', col='black',lwd=1, pch=18, ylab = 
+       "Population Size", xlab = "Iteration")
+points(popSize_C~ iter, type='o', col='red',lwd=1, pch=18)
 
 
 
