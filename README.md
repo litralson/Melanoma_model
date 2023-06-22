@@ -1,2 +1,2 @@
 # Melanoma_model
- EC 303 Course project 
+This was a group project with Dr Sambita Modak, and was done as part of the EC 303 Course: Stochastic and Spatial Dynamics in Biology offered by Dr Vishwesha Guttal, CES, IISc Bangalore, Aug-Dec, 2021. I audited this course after graduating to get a better understanding of non-linear dynamics. As part of the project, we wanted to make a simplified model of how melanoma progresses in an individual and how it changes with different mutation frequencies. This is a modified Lotka-Volterra model of prey-predator interactions.
